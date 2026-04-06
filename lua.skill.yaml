@@ -1,0 +1,12 @@
+agent:
+  agentId: baseAgent_agent_1775478662703_p2x9kolnb
+  orgId: 3854af58-ee40-47a5-af9d-7c9b0a00006a
+skills:
+  - name: mpesa-bill-payment
+    skillId: e5ab6082-0adf-4471-8d4f-563ba0e2db3b
+    version: 1.0.0
+webhooks: []
+jobs: []
+preprocessors: []
+postprocessors: []
+mcpServers: []
