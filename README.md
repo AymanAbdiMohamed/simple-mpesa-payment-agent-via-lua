@@ -1,142 +1,96 @@
-# 🤖 Lua AI Agent
+# M-Pesa Bill Payment Agent
 
-Welcome to your Lua AI Agent! This is a minimal project ready for you to build your custom agent.
+A Lua AI agent called **Lipa** that helps Kenyan customers check outstanding bills and pay them via M-Pesa STK push — all through a conversational interface.
 
-## 🚀 Quick Start
+## What it does
+
+- Check outstanding bill amounts for Safaricom Postpaid, KPLC (prepaid & postpaid), and Nairobi Water
+- Initiate M-Pesa STK push payments — the user gets a prompt on their phone to confirm with their PIN
+- Handles phone number formatting automatically (e.g. `0712345678` → `254712345678`)
+- Responds in a friendly, conversational style with occasional Swahili (Sawa, Poa, Karibu)
+
+## Project structure
+
+```
+mpesa-payment-agent/
+├── src/
+│   ├── index.ts                        # Agent definition (default export)
+│   └── skills/
+│       ├── payment.skill.ts            # Groups the two payment tools
+│       └── tools/
+│           ├── CheckBalanceTool.ts     # Looks up outstanding bill amount
+│           └── InitiatePaymentTool.ts  # Sends M-Pesa STK push
+├── lua.skill.yaml                      # Lua platform manifest (auto-managed)
+├── env.example                         # Environment variable reference
+├── package.json
+└── tsconfig.json
+```
+
+## Getting started
 
 ```bash
-# 1. Test your agent (sandbox mode)
+# Install dependencies
+npm install
+
+# Chat with the agent in sandbox mode
 lua chat
 
-# 2. Create your first tool
-# See "Creating Your First Tool" below
+# Test tools individually
+lua test
 
-# 3. Deploy to production
+# Deploy to production
 lua push all --force --auto-deploy
 ```
 
-## 📁 Project Structure
+## Tools
 
-```
-your-project/
-├── src/
-│   └── index.ts          # Your agent configuration
-├── lua.skill.yaml        # State manifest (IDs + versions only; auto-managed)
-├── package.json          # Dependencies
-└── tsconfig.json         # TypeScript config
-```
+### `check_account_balance`
 
-## 🛠️ Creating Your First Tool
+Looks up the outstanding bill for a given account and service.
 
-### 1. Create the tool file
+| Input           | Type   | Description                                                             |
+| --------------- | ------ | ----------------------------------------------------------------------- |
+| `accountNumber` | string | Customer account or phone number                                        |
+| `service`       | enum   | `safaricom_postpaid`, `kplc_prepaid`, `kplc_postpaid`, `nairobi_water`  |
 
-```bash
-mkdir -p src/skills/tools
-```
+Returns the amount due in KES and whether the account is `outstanding` or `clear`.
 
-Create `src/skills/tools/GreetingTool.ts`:
+### `initiate_mpesa_payment`
 
-```typescript
-import { LuaTool } from "lua-cli";
-import { z } from "zod";
+Sends an M-Pesa STK push to the customer's phone.
 
-export default class GreetingTool implements LuaTool {
-    name = "greet_user";
-    description = "Generate a personalized greeting";
-    
-    inputSchema = z.object({
-        name: z.string().describe("The name of the person to greet")
-    });
+| Input | Type | Description |
+|-------|------|-------------|
+| `phoneNumber` | `string` | M-Pesa number in format `2547XXXXXXXX` |
+| `amount` | `number` | Amount in KES |
+| `service` | `string` | Service being paid |
+| `accountNumber` | `string` | Account number for the bill |
 
-    async execute(input: z.infer<typeof this.inputSchema>) {
-        return { 
-            greeting: `Hello, ${input.name}! How can I help you today?` 
-        };
-    }
-}
-```
+> **Note:** The payment tool currently simulates the STK push response. To go live, replace the `execute` body in [InitiatePaymentTool.ts](src/skills/tools/InitiatePaymentTool.ts) with a `POST` to your backend which calls the Safaricom Daraja STK Push API.
 
-### 2. Create a skill to group your tools
+## Environment variables
 
-Create `src/skills/greeting.skill.ts`:
-
-```typescript
-import { LuaSkill } from "lua-cli";
-import GreetingTool from "./tools/GreetingTool";
-
-const greetingSkill = new LuaSkill({
-    name: "greeting-skill",
-    description: "Tools for greeting users",
-    context: "Use these tools when the user wants to be greeted",
-    tools: [new GreetingTool()],
-});
-
-export default greetingSkill;
-```
-
-### 3. Add the skill to your agent
-
-Update `src/index.ts`:
-
-```typescript
-import { LuaAgent } from "lua-cli";
-import greetingSkill from "./skills/greeting.skill";
-
-const agent = new LuaAgent({
-    name: `My Agent`,
-    persona: `You are a friendly assistant.`,
-    skills: [greetingSkill],
-});
-```
-
-### 4. Test it!
+Copy `env.example` to `.env` and fill in your keys:
 
 ```bash
-lua test      # Test the tool directly
-lua chat      # Chat with your agent
+cp env.example .env
 ```
 
-## 📖 Essential Commands
+The agent itself only requires the Lua platform credentials (managed via `lua env`). The `.env` file is for any backend integration you add (e.g. Daraja API keys).
+
+## Lua CLI commands
 
 | Command | Purpose |
 |---------|---------|
+| `lua chat` | Interactive chat with the agent |
 | `lua test` | Test individual tools interactively |
-| `lua chat` | Interactive chat with your agent |
-| `lua compile` | Compile your code |
-| `lua push` | Upload to server |
+| `lua compile` | Type-check and compile |
+| `lua push` | Upload to the Lua platform |
 | `lua deploy` | Deploy to production |
 | `lua logs` | View execution logs |
+| `lua env` | Manage environment variables |
 
-## 🎯 Want Examples?
+## Resources
 
-Initialize a new project with example code:
-
-```bash
-mkdir my-project-with-examples && cd my-project-with-examples
-lua init --with-examples
-```
-
-This includes:
-- ✅ 30+ example tools
-- ✅ Example webhooks (HTTP endpoints)
-- ✅ Example scheduled jobs
-- ✅ Example pre/post processors
-- ✅ Working e-commerce flow (products, baskets, orders)
-
-## 📚 Learn More
-
-- **Documentation:** https://docs.heylua.ai
-- **Examples:** https://docs.heylua.ai/examples
-- **API Reference:** https://docs.heylua.ai/api
-
-## 💡 Tips
-
-1. **Use Zod schemas** - They provide type safety and help the AI understand your tool inputs
-2. **Write clear descriptions** - The AI reads these to decide when to use your tools
-3. **Test in sandbox first** - Use `lua chat` with sandbox mode before deploying
-4. **Keep tools focused** - Each tool should do one thing well
-
----
-
-*Built with [Lua CLI](https://www.npmjs.com/package/lua-cli)*
-# simple-mpesa-payment-agent-via-lua
+- [Lua documentation](https://docs.heylua.ai)
+- [Safaricom Daraja API](https://developer.safaricom.co.ke/)

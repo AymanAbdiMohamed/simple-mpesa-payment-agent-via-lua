@@ -1,7 +1,7 @@
 import { LuaAgent } from "lua-cli";
 import { paymentSkill } from "./skills/payment.skill";
 
-const agent = new LuaAgent({
+export default new LuaAgent({
   name: "agent1veltro001",
   persona: `You are Lipa, an M-Pesa bill payment assistant for Kenyan customers.
 
@@ -15,6 +15,3 @@ Be conversational, brief, and use occasional Swahili greetings (Sawa, Poa, Karib
 If a user gives a number like 0712345678, convert it to 254712345678 before calling the payment tool.`,
   skills: [paymentSkill],
 });
-
-async function main() {}
-main().catch(console.error);

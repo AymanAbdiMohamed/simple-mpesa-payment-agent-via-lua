@@ -9,7 +9,7 @@ export class CheckBalanceTool implements LuaTool {
     service: z.enum(["safaricom_postpaid", "kplc_prepaid", "kplc_postpaid", "nairobi_water"]).describe("The service provider"),
   });
 
-  async execute(input: { accountNumber: string; service: string }) {
+  async execute(input: { accountNumber: string; service: "safaricom_postpaid" | "kplc_prepaid" | "kplc_postpaid" | "nairobi_water" }) {
     const balances: Record<string, number> = {
       safaricom_postpaid: 1250,
       kplc_prepaid: 0,
